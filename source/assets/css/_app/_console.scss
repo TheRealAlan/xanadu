@@ -1,0 +1,39 @@
+.console {
+  position: relative;
+  color: $white;
+  font-weight: 700;
+}
+
+.console-label {
+  width: 1em;
+  margin-left: -1em;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.console-cursor {
+  display: inline-block;
+  vertical-align: bottom;
+  background-color: $white;
+  width: .8em;
+  height: 1.2em;
+  animation: blink 1s infinite;
+}
+
+.console-input {
+  display: inline-block;
+  width: auto;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.jquery-console-prompt-label {
+  margin-left: -20px;
+}
+
+.jquery-console-cursor {
+  background-color: #fff;
+  animation: blink 1s infinite;
+}

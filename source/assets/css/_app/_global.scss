@@ -1,0 +1,21 @@
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  background-color: $background;
+  color: $text;
+  font-family: $primary-font;
+  font-weight: $primary-weight;
+  padding: $body-margin;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}

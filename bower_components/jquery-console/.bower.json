@@ -1,0 +1,14 @@
+{
+  "name": "jquery-console",
+  "homepage": "https://github.com/chrisdone/jquery-console",
+  "_release": "c8812e4a2a",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "c8812e4a2a3a4328775391bff06a77aa42753bd0"
+  },
+  "_source": "git://github.com/chrisdone/jquery-console.git",
+  "_target": "*",
+  "_originalSource": "jquery-console",
+  "_direct": true
+}
