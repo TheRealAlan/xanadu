@@ -44,6 +44,7 @@ class Levels
       autofocus: true
 
       commandHandle: (line, report) =>
+        @_scroll_to_bottom()
         @_handle_input(line)
 
     })
@@ -62,5 +63,12 @@ class Levels
     else
       return "Nope."
 
+  _scroll_to_bottom: ->
+    $prompt = $('.jquery-console-prompt-box:last')
+    $prompt.velocity( 'scroll', {
+      duration: 200
+    })
+
 $ ->
+
   window.Levels = new Levels
