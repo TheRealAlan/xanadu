@@ -32,30 +32,19 @@ class Levels
           @_focus_console()
 
   _update_scene: ->
-    if @levels[@level][@scene]['output']
-      @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
+    @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
 
   _init_console: ->
+
     # jQuery console
     @$console.console({
       promptLabel: '> '
       promptHistory: false
       historyPreserveColumn: false
       autofocus: true
-      commandValidate: (line) =>
-        if line is @levels[@level][@scene]['valid']
-          @$dialog.append("<div class='input'><p>#{line}</p></div>")
-          @scene++
-          @_update_scene()
-        else if line is ""
-          return false
-        else
-          @$dialog.append("<div class='input'><p>#{line}</p></div>")
-          @$dialog.append("<div class='output'><p>I don't understand that.</p></div>")
 
-      commandHandle: (line) =>
-        if line isnt ""
-          @$dialog.append("<div class='input'><p>#{line}</p></div>")
+      commandHandle: (line, report) =>
+        @_handle_input(line)
 
     })
 
@@ -65,6 +54,13 @@ class Levels
       $typer = $('.jquery-console-typer')
       $inner.addClass 'jquery-console-focus'
       $typer.focus()
+
+  _handle_input: (line) ->
+    if line is @levels[@level][@scene]['valid']
+      @scene++
+      return @levels[@level][@scene]['output']
+    else
+      return "Nope."
 
 $ ->
   window.Levels = new Levels
