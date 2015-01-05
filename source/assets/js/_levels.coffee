@@ -32,8 +32,8 @@ class Levels
           @_focus_console()
 
   _update_scene: ->
-
-    @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
+    if @levels[@level][@scene]['output']
+      @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
 
   _init_console: ->
     # jQuery console
