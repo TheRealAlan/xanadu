@@ -30,9 +30,10 @@ class Levels
           @_update_scene()
           @_init_console()
           @_focus_console()
+          @_typewriter()
 
   _update_scene: ->
-    @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
+    @$dialog.append("<div class='jquery-console-message'>#{@levels[@level][@scene]['output']}</div>")
 
   _init_console: ->
 
@@ -43,8 +44,9 @@ class Levels
       historyPreserveColumn: false
       autofocus: true
 
-      commandHandle: (line, report) =>
+      commandHandle: (line) =>
         @_scroll_to_bottom()
+        @_typewriter()
         @_handle_input(line)
 
     })
@@ -68,6 +70,29 @@ class Levels
     $prompt.velocity( 'scroll', {
       duration: 200
     })
+
+  _typewriter: (text, $target) ->
+    delay = setTimeout ->
+      $target = $('.jquery-console-message:last')
+      text = $target.text()
+      length = text.length
+      character = 0
+      timeout = null
+      $target.text('')
+
+      typewriter = ->
+        timeout = setTimeout ->
+          character++
+          type = text.substring(0, character)
+          $target.text type
+          typewriter()
+
+          if character is length
+            clearTimeout timeout
+        , 50
+
+      typewriter()
+    , 0
 
 $ ->
 
