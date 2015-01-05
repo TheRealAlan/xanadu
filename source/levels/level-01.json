@@ -1,0 +1,10 @@
+[
+  {
+    "output": "Sample scene. Type 'next scene' to continue.",
+    "valid": "next scene"
+  },
+  {
+    "output": "Nice! Scenes work.",
+    "valid": ""
+  }
+]

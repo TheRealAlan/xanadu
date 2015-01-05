@@ -5,38 +5,35 @@ class Levels
     @$console = $('.console')
     @$console_input = $('.jquery-console-prompt')
     @$dialog = $('.dialog')
-    @level_files = [
-      "/assets/js/_levels/level-1.coffee"
-    ]
 
     @level = 0
     @scene = 0
     @act = 0
 
-    @levels = [
-      [
-        title: "Scene 1"
-        output: "Middleman is distributed using the RubyGems package manager. This means you will need both the Ruby language runtime installed and RubyGems to begin using Middleman."
-        valid: "walk"
-      ,
-        title: "Scene 2"
-        output: "Mac OS X comes prepackaged with both Ruby and Rubygems, however, some of the Middleman's dependencies need to be compiled during installation and on OS X that requires Xcode. Xcode can be installed via the Mac App Store. Alternately, if you have a free Apple Developer account, you can just install Command Line Tools for Xcode from their downloads page."
-        valid: "die"
-      ,
-        title: "Scene 3"
-        output: "No, you die."
-        valid: ""
-      ]
+    @levels = []
+    @level_paths = [
+      "/levels/level-01.json"
+      "/levels/level-02.json"
     ]
 
-    @_update_scene()
-    @_init_console()
-    @_focus_console()
+    @level_count = 0
+
+    for level in @level_paths
+      $.getJSON level, (data) =>
+        @levels.push data
+      .fail (err) =>
+        "Request failed: #{err}"
+      .done (data) =>
+        @level_count++
+        if @level_count is @level_paths.length
+          # Loading finished, init
+          @_update_scene()
+          @_init_console()
+          @_focus_console()
 
   _update_scene: ->
 
     @$dialog.append("<div class='output'><p>#{@levels[@level][@scene]['output']}</p></div>")
-    console.log(@levels[@level][@scene]['valid'])
 
   _init_console: ->
     # jQuery console
