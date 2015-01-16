@@ -3,7 +3,7 @@ class Levels
   constructor: ->
     @$body = $(document)
     @$console = $('.console')
-    @$console_input = $('.jquery-console-prompt')
+    # @$console_input = $('.jquery-console-prompt')
     @$dialog = $('.dialog')
 
     @level = 0
@@ -33,66 +33,66 @@ class Levels
           @_typewriter()
 
   _update_scene: ->
-    @$dialog.append("<div class='jquery-console-message'>#{@levels[@level][@scene]['output']}</div>")
+    @$dialog.append("<div class='output'>#{@levels[@level][@scene]['output']}</div>")
 
   _init_console: ->
 
     # jQuery console
-    @$console.console({
-      promptLabel: '> '
-      promptHistory: false
-      historyPreserveColumn: false
-      autofocus: true
+    # @$console.console({
+    #   promptLabel: '> '
+    #   promptHistory: false
+    #   historyPreserveColumn: false
+    #   autofocus: true
 
-      commandHandle: (line) =>
-        @_scroll_to_bottom()
-        @_typewriter()
-        @_handle_input(line)
+    #   commandHandle: (line) =>
+    #     @_scroll_to_bottom()
+    #     @_typewriter()
+    #     @_handle_input(line)
 
-    })
+    # })
 
   _focus_console: ->
-    @$body.on 'click', (ev) =>
-      $inner = $('.jquery-console-inner')
-      $typer = $('.jquery-console-typer')
-      $inner.addClass 'jquery-console-focus'
-      $typer.focus()
+    # @$body.on 'click', (ev) =>
+    #   $inner = $('.jquery-console-inner')
+    #   $typer = $('.jquery-console-typer')
+    #   $inner.addClass 'jquery-console-focus'
+    #   $typer.focus()
 
   _handle_input: (line) ->
-    if line is @levels[@level][@scene]['valid']
-      @scene++
-      return @levels[@level][@scene]['output']
-    else
-      return "Nope."
+    # if line is @levels[@level][@scene]['valid']
+    #   @scene++
+    #   return @levels[@level][@scene]['output']
+    # else
+    #   return "Nope."
 
   _scroll_to_bottom: ->
-    $prompt = $('.jquery-console-prompt-box:last')
-    $prompt.velocity( 'scroll', {
-      duration: 200
-    })
+    # $prompt = $('.jquery-console-prompt-box:last')
+    # $prompt.velocity( 'scroll', {
+    #   duration: 200
+    # })
 
   _typewriter: (text, $target) ->
-    delay = setTimeout ->
-      $target = $('.jquery-console-message:last')
-      text = $target.text()
-      length = text.length
-      character = 0
-      timeout = null
-      $target.text('')
+    # delay = setTimeout ->
+    #   $target = $('.jquery-console-message:last')
+    #   text = $target.text()
+    #   length = text.length
+    #   character = 0
+    #   timeout = null
+    #   $target.text('')
 
-      typewriter = ->
-        timeout = setTimeout ->
-          character++
-          type = text.substring(0, character)
-          $target.text type
-          typewriter()
+    #   typewriter = ->
+    #     timeout = setTimeout ->
+    #       character++
+    #       type = text.substring(0, character)
+    #       $target.text type
+    #       typewriter()
 
-          if character is length
-            clearTimeout timeout
-        , 50
+    #       if character is length
+    #         clearTimeout timeout
+    #     , 50
 
-      typewriter()
-    , 0
+    #   typewriter()
+    # , 0
 
 $ ->
 

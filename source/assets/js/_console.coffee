@@ -1,590 +1,207 @@
-(($) ->
-  isWebkit = !!~navigator.userAgent.indexOf(" AppleWebKit/")
-  $.fn.console = (config) ->
+class Console
 
-    keyCodes = {}
-    ctrlCodes = {}
-    altCodes = {}
-    shiftCodes = 13: newLine
-    cursor = "<span class=\"jquery-console-cursor\">&nbsp;</span>"
-    container = $(this)
-    inner = $("<div class=\"jquery-console-inner\"></div>")
-    typer = $("<textarea class=\"jquery-console-typer\"></textarea>")
-    promptBox = ''
-    prompt = ''
-    continuedPromptLabel = (if config and config.continuedPromptLabel then config.continuedPromptLabel else "> ")
-    column = 0
-    promptText = ""
-    restoreText = ""
-    continuedText = ""
-    fadeOnReset = (if config.fadeOnReset isnt `undefined` then config.fadeOnReset else true)
-    history = []
-    ringn = 0
-    cancelKeyPress = 0
-    acceptInput = true
-    cancelCommand = false
-    extern = {}
+  constructor: ->
 
-    # Make a new prompt box
-    newPromptBox = ->
-      column = 0
-      promptText = ""
-      ringn = 0 # Reset the position of the history ring
-      enableInput()
-      promptBox = $("<div class=\"jquery-console-prompt-box\"></div>")
-      label = $("<span class=\"jquery-console-prompt-label\"></span>")
-      labelText = (if extern.continuedPrompt then continuedPromptLabel else extern.promptLabel)
-      promptBox.append label.text(labelText).show()
-      label.html label.html().replace(" ", "&nbsp;")
-      prompt = $("<span class=\"jquery-console-prompt\"></span>")
-      promptBox.append prompt
-      inner.append promptBox
-      updatePromptDisplay()
-      return
+    # Selectors
+    @$dialog      = $('.dialog')
+    @$console     = $('.console')
+    @$inner       = $('.console-inner')
+    @$capture     = $('.console-capture')
+    @$prompt      = $('.console-prompt')
+    @$cursor      = $('.console-cursor')
 
-    #//////////////////////////////////////////////////////////////////////
-    # Handle setting focus
+    # Variables
+    @pos          = 0
+    @prompt_text  = ''
+    @restore_text = ''
+    @cursor       = @$cursor.html()
 
-    # Don't mess with the focus if there is an active selection
+    # init
+    @init()
 
-    #//////////////////////////////////////////////////////////////////////
-    # Handle losing focus
+  init: ->
+    @_console_focus()
+    @_document_click()
+    @_capture_type();
 
-    #//////////////////////////////////////////////////////////////////////
-    # Bind to the paste event of the input box so we know when we
-    # get pasted data
+  _document_click: ->
+    $(document).on 'click', (ev) =>
+      @_console_focus()
 
-    # wipe typer input clean just in case
+  _capture_type: ->
+    @$capture.on 'keypress', (ev) =>
 
-    # this timeout is required because the onpaste event is
-    # fired *before* the text is actually pasted
+      if document.selection
+        range = document.selection.createRange()
+        range.moveStart('character', -@$capture[0].value.length)
+        @pos = range.text.length
+      else if @$capture[0].selectionStart or @$capture[0].selectionStart is '0'
+        @pos = @$capture[0].selectionStart
 
-    #//////////////////////////////////////////////////////////////////////
-    # Handle key hit before translation
-    # For picking up control characters like up/left/down/right
+      @_update_prompt()
 
-    # C-c: cancel the execution
+      # console.log ev.keyCode
+      keycode = ev.keyCode
 
-    #//////////////////////////////////////////////////////////////////////
-    # Handle key press
+      switch keycode
+        # left
+        when 37 then @_move_backward()
+        # right
+        when 39 then @_move_forward()
+        # up
+        when 38 then @_prev_history()
+        # down
+        when 40 then @_next_history()
+        # backspace
+        when 8 then @_backspace()
+        # delete
+        when 46 then @_forward_delete()
+        # end
+        when 35 then @_move_to_end()
+        # start
+        when 36 then @_move_to_start()
+        # return
+        when 13 then @_trigger_command()
+        # tab
+        when 18 then @_do_nothing()
+        # tab
+        when 0 then @_do_complete()
 
-    # C-v: don't insert on paste event
-    isIgnorableKey = (e) ->
+      # switch ctrlcode
+      #   # C-a
+      #   when 65 then @_move_to_start
+      #   # C-e
+      #   when 69 then @_move_to_end
+      #   # C-d
+      #   when 68 then @_forward_delete
+      #   # C-n
+      #   when 78 then @_next_distory
+      #   # C-p
+      #   when 80 then @_prev_history
+      #   # C-b
+      #   when 66 then @_move_backward
+      #   # C-f
+      #   when 70 then @_move_forward
+      #   # C-k
+      #   when 75 then @_delete_until_end
+      #   else return false
 
-      # for now just filter alt+tab that we receive on some platforms when
-      # user switches windows (goes away from the browser)
-      (e.keyCode is keyCodes.tab or e.keyCode is 192) and e.altKey
+      # switch altcode
+      #   # M-f
+      #   when 70 then @_move_to_next_word
+      #   # M-b
+      #   when 66 then @_move_to_previous_word
+      #   # M-d
+      #   when 68 then @_delete_next_word
 
-    # Rotate through the command history
-    rotateHistory = (n) ->
-      return  if history.length is 0
-      ringn += n
-      if ringn < 0
-        ringn = history.length
-      else ringn = 0  if ringn > history.length
-      prevText = promptText
-      if ringn is 0
-        promptText = restoreText
-      else
-        promptText = history[ringn - 1]
-      if config.historyPreserveColumn
-        if promptText.length < column + 1
-          column = promptText.length
-        else column = promptText.length  if column is 0
-      else
-        column = promptText.length
-      updatePromptDisplay()
-      return
-    previousHistory = ->
-      rotateHistory -1
-      return
-    nextHistory = ->
-      rotateHistory 1
-      return
+      # switch shiftcode
+      #   # return
+      #   when 13 then @_new_line
 
-    # Add something to the history ring
-    addToHistory = (line) ->
-      history.push line
-      restoreText = ""
-      return
+  _console_focus: ->
+    @$inner.addClass 'focused'
+    @$capture.focus()
 
-    # Delete the character at the current position
-    deleteCharAtPos = ->
-      if column < promptText.length
-        promptText = promptText.substring(0, column) + promptText.substring(column + 1)
-        restoreText = promptText
-        true
-      else
-        false
-    backDelete = ->
-      if moveColumn(-1)
-        deleteCharAtPos()
-        updatePromptDisplay()
-      return
-    forwardDelete = ->
-      updatePromptDisplay()  if deleteCharAtPos()
-      return
-    deleteUntilEnd = ->
-      updatePromptDisplay()  while deleteCharAtPos()
-      return
-    deleteNextWord = ->
+  _update_prompt: ->
+    text = @$capture.val()
+    html = ''
+    console.log @pos
 
-      # A word is defined within this context as a series of alphanumeric
-      # characters.
-      # Delete up to the next alphanumeric character
-      while column < promptText.length and not isCharAlphanumeric(promptText[column])
-        deleteCharAtPos()
-        updatePromptDisplay()
+    if @pos > 0 and text is ''
+      html = @cursor
+    else if @pos is text.length
+      html = @_html_encode text + @cursor4
+    else
+      before  = text.substring(0, @pos)
+      current = text.substring(@pos, @pos + 1)
+      after   = text.substring(@pos + 1)
 
-      # Then, delete until the next non-alphanumeric character
-      while column < promptText.length and isCharAlphanumeric(promptText[column])
-        deleteCharAtPos()
-        updatePromptDisplay()
-      return
-    newLine = ->
-      lines = promptText.split("\n")
-      last_line = lines.slice(-1)[0]
-      spaces = last_line.match(/^(\s*)/g)[0]
-      new_line = "\n" + spaces
-      promptText += new_line
-      moveColumn new_line.length
-      updatePromptDisplay()
-      return
+      if current
+        current = "<span class='console-cursor'>#{@_html_encode( current )}</span>"
 
-    # Validate command and trigger it if valid, or show a validation error
-    commandTrigger = ->
-      line = promptText
-      if typeof config.commandValidate is "function"
-        ret = config.commandValidate(line)
-        if ret is true or ret is false
-          handleCommand()  if ret
-        else
-          commandResult ret, "jquery-console-message-error"
-      else
-        handleCommand()
-      return
+      html = @_html_encode( before ) + current + @_html_encode( after )
 
-    # Scroll to the bottom of the view
-    scrollToBottom = ->
-      version = jQuery.fn.jquery.split(".")
-      major = parseInt(version[0])
-      minor = parseInt(version[1])
+    @$prompt.html( html )
 
-      # check if we're using jquery > 1.6
-      if (major is 1 and minor > 6) or major > 1
-        inner.prop scrollTop: inner.prop("scrollHeight")
-      else
-        inner.attr scrollTop: inner.attr("scrollHeight")
-      return
-    cancelExecution = ->
-      config.cancelHandle()  if typeof config.cancelHandle is "function"
-      return
+  _insert_prompt: (data) ->
+    text          = if typeof data is 'number' then String.fromCharCode( data ) else data
+    before        = @prompt_text.substring(0, @pos)
+    after         = @prompt_text.substring(@pos)
+    @prompt_text  = before + text + after
+    @_move_cursor(text.length)
+    @restore_text = @prompt_text
+    @_update_prompt()
 
-    # Handle a command
-    handleCommand = ->
-      if typeof config.commandHandle is "function"
-        disableInput()
-        addToHistory promptText
-        text = promptText
-        if extern.continuedPrompt
-          if continuedText
-            continuedText += "\n" + promptText
-          else
-            continuedText = promptText
-        else
-          continuedText = `undefined`
-        text = continuedText  if continuedText
-        ret = config.commandHandle(text, (msgs) ->
-          commandResult msgs
-          return
-        )
-        continuedText = promptText  if extern.continuedPrompt and not continuedText
-        if typeof ret is "boolean"
-          if ret
-            # Command succeeded without a result.
-            commandResult()
-          else
-            commandResult "Command failed.", "jquery-console-message-error"
-        else if typeof ret is "string"
-          commandResult ret, "jquery-console-message-success"
-        else if typeof ret is "object" and ret.length
-          commandResult ret
-        else commandResult()  if extern.continuedPrompt
-      return
+  _html_encode: (text) ->
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/</g, '&lt;')
+      .replace(RegExp(' ', 'g'), '&nbsp;')
+      # .replace(/\n/g, '<br>')
 
-    # Disable input
-    disableInput = ->
-      acceptInput = false
-      return
+  _move_forward: ->
+    @_move_cursor( 1 )
 
-    # Enable input
-    enableInput = ->
-      acceptInput = true
-      return
+  _move_backward: ->
+    @_move_cursor( -1 )
 
-    # Reset the prompt in invalid command
-    commandResult = (msg, className) ->
-      column = -1
-      updatePromptDisplay()
-      if typeof msg is "string"
-        message msg, className
-      else if $.isArray(msg)
-        for x of msg
-          ret = msg[x]
-          message ret.msg, ret.className
-      else # Assume it's a DOM node or jQuery object.
-        inner.append msg
-      newPromptBox()
-      return
+  _move_cursor: (n) ->
+    text = @$capture.val()
 
-    # Report some message into the console
-    report = (msg, className) ->
-      text = promptText
-      promptBox.remove()
-      commandResult msg, className
-      extern.promptText text
-      return
+    if @pos + n >= 0 and @pos + n <= text.length
+      @pos += n
+      @_update_prompt()
 
-    # Display a message
-    message = (msg, className) ->
-      mesg = $("<div class=\"jquery-console-message\"></div>")
-      mesg.addClass className  if className
-      mesg.filledText(msg).hide()
-      inner.append mesg
-      mesg.show()
-      return
+  _scroll_to_bottom: ->
+    @$console.velocity( 'scroll', {
+      duration: 200
+    })
 
-    #//////////////////////////////////////////////////////////////////////
-    # Handle normal character insertion
-    # data can either be a number, which will be interpreted as the
-    # numeric value of a single character, or a string
+  # _prev_history: ->
+  #   @_update_prompt()
 
-    # TODO: remove redundant indirection
+  # _next_history: ->
+  #   @_update_prompt()
 
-    #//////////////////////////////////////////////////////////////////////
-    # Move to another column relative to this one
-    # Negative means go back, positive means go forward.
+  # _backspace: ->
+  #   @_update_prompt()
 
-    moveColumn = (n) ->
-      if column + n >= 0 and column + n <= promptText.length
-        column += n
-        true
-      else
-        false
-    moveForward = ->
-      if moveColumn(1)
-        updatePromptDisplay()
-        return true
-      false
-    moveBackward = ->
-      if moveColumn(-1)
-        updatePromptDisplay()
-        return true
-      false
-    moveToStart = ->
-      updatePromptDisplay()  if moveColumn(-column)
-      return
-    moveToEnd = ->
-      updatePromptDisplay()  if moveColumn(promptText.length - column)
-      return
-    moveToNextWord = ->
-      continue  while column < promptText.length and not isCharAlphanumeric(promptText[column]) and moveForward()
-      continue  while column < promptText.length and isCharAlphanumeric(promptText[column]) and moveForward()
-      return
-    moveToPreviousWord = ->
-      # Move backward until we find the first alphanumeric
-      continue  while column - 1 >= 0 and not isCharAlphanumeric(promptText[column - 1]) and moveBackward()
-      # Move until we find the first non-alphanumeric
-      continue  while column - 1 >= 0 and isCharAlphanumeric(promptText[column - 1]) and moveBackward()
-      return
-    isCharAlphanumeric = (charToTest) ->
-      if typeof charToTest is "string"
-        code = charToTest.charCodeAt()
-        return (code >= "A".charCodeAt() and code <= "Z".charCodeAt()) or (code >= "a".charCodeAt() and code <= "z".charCodeAt()) or (code >= "0".charCodeAt() and code <= "9".charCodeAt())
-      false
-    doComplete = ->
-      if typeof config.completeHandle is "function"
-        completions = config.completeHandle(promptText)
-        len = completions.length
-        if len is 1
-          extern.promptText promptText + completions[0]
-        else if len > 1 and config.cols
-          prompt = promptText
-          # Compute the number of rows that will fit in the width
-          max = 0
-          i = 0
+  # _forward_delete: ->
+  #   @_update_prompt()
 
-          while i < len
-            max = Math.max(max, completions[i].length)
-            i++
-          max += 2
-          n = Math.floor(config.cols / max)
-          buffer = ""
-          col = 0
-          i = 0
-          while i < len
-            completion = completions[i]
-            buffer += completions[i]
-            j = completion.length
+  # _delete_until_end: ->
+  #   @_update_prompt()
 
-            while j < max
-              buffer += " "
-              j++
-            if ++col >= n
-              buffer += "\n"
-              col = 0
-            i++
-          commandResult buffer, "jquery-console-message-value"
-          extern.promptText prompt
-      return
-    doNothing = ->
+  # _move_to_end: ->
+  #   @_update_prompt()
 
-    # Update the prompt display
-    updatePromptDisplay = ->
-      line = promptText
-      html = ""
-      if column > 0 and line is ""
-        # When we have an empty line just display a cursor.
-        html = cursor
-      else if column is promptText.length
-        # We're at the end of the line, so we need to display
-        # the text *and* cursor.
-        html = htmlEncode(line) + cursor
-      else
-        # Grab the current character, if there is one, and
-        # make it the current cursor.
-        before = line.substring(0, column)
-        current = line.substring(column, column + 1)
-        current = "<span class=\"jquery-console-cursor\">" + htmlEncode(current) + "</span>"  if current
-        after = line.substring(column + 1)
-        html = htmlEncode(before) + current + htmlEncode(after)
-      prompt.html html
-      scrollToBottom()
-      return
+  # _move_to_start: ->
+  #   @_update_prompt()
 
-    # Simple HTML encoding
-    # Simply replace '<', '>' and '&'
-    # TODO: Use jQuery's .html() trick, or grab a proper, fast
-    # HTML encoder.
-    htmlEncode = (text) ->
-      text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/</g, "&lt;").replace(RegExp(" ", "g"), "&nbsp;").replace /\n/g, "<br />"
+  _trigger_command: ->
+    input_text = @$prompt.text()
 
-    keyCodes =
-      37: moveBackward()
-      39: moveForward()
-      38: previousHistory()
-      40: nextHistory()
-      8:  backDelete()
-      46: forwardDelete()
-      35: moveToEnd()
-      36: moveToStart()
-      13: commandTrigger()
-      18: doNothing()
-      9:  doComplete()
+    if input_text
+      input = "<div class='input'>#{input_text}</div>"
+      @$dialog.append input
+      @_clear_prompt()
+      @_scroll_to_bottom()
 
-    ctrlCodes =
-      65: moveToStart()
-      69: moveToEnd()
-      68: forwardDelete()
-      78: nextHistory()
-      80: previousHistory()
-      66: moveBackward()
-      70: moveForward()
-      75: deleteUntilEnd()
+  _clear_prompt: ->
+    @$capture.val('')
+    @$prompt.text('')
+    @pos = 0
 
-    $.extend ctrlCodes, config.ctrlCodes  if config.ctrlCodes
-    altCodes =
-      70: moveToNextWord()
-      66: moveToPreviousWord()
-      68: deleteNextWord()
+  # _new_line: ->
+  #   @_update_prompt()
 
-    (->
-      extern.promptLabel = (if config and config.promptLabel then config.promptLabel else "> ")
-      container.append inner
-      inner.append typer
-      typer.css
-        position: "absolute"
-        top: 0
-        left: "-9999px"
+  # _do_nothing: ->
+  #   @_update_prompt()
 
-      message config.welcomeMessage, "jquery-console-welcome"  if config.welcomeMessage
-      newPromptBox()
-      if config.autofocus
-        inner.addClass "jquery-console-focus"
-        typer.focus()
-        setTimeout (->
-          inner.addClass "jquery-console-focus"
-          typer.focus()
-          return
-        ), 100
-      extern.inner = inner
-      extern.typer = typer
-      extern.scrollToBottom = scrollToBottom
-      extern.report = report
-      return
-    )()
-    extern.reset = ->
-      welcome = (typeof config.welcomeMessage isnt "undefined")
-      removeElements = ->
-        inner.find("div").each ->
-          unless welcome
-            $(this).remove()
-          else
-            welcome = false
-          return
+  # _do_complete: ->
+  #   @_update_prompt()
 
-        return
+$ ->
 
-      if fadeOnReset
-        inner.parent().fadeOut ->
-          removeElements()
-          newPromptBox()
-          inner.parent().fadeIn focusConsole
-          return
-
-      else
-        removeElements()
-        newPromptBox()
-        focusConsole()
-      return
-
-    focusConsole = ->
-      inner.addClass "jquery-console-focus"
-      typer.focus()
-      return
-
-    extern.focus = ->
-      focusConsole()
-      return
-
-    extern.notice = (msg, style) ->
-      n = $("<div class=\"notice\"></div>").append($("<div></div>").text(msg)).css(visibility: "hidden")
-      container.append n
-      focused = true
-      if style is "fadeout"
-        setTimeout (->
-          n.fadeOut ->
-            n.remove()
-            return
-
-          return
-        ), 4000
-      else if style is "prompt"
-        a = $("<br/><div class=\"action\"><a href=\"javascript:\">OK</a><div class=\"clear\"></div></div>")
-        n.append a
-        focused = false
-        a.click ->
-          n.fadeOut ->
-            n.remove()
-            inner.css opacity: 1
-            return
-
-          return
-
-      h = n.height()
-      n.css(
-        height: "0px"
-        visibility: "visible"
-      ).animate
-        height: h + "px"
-      , ->
-        inner.css opacity: 0.5  unless focused
-        return
-
-      n.css "cursor", "default"
-      n
-
-    container.click ->
-      return false  if window.getSelection().toString()
-      inner.addClass "jquery-console-focus"
-      inner.removeClass "jquery-console-nofocus"
-      if isWebkit
-        typer.focusWithoutScrolling()
-      else
-        typer.css("position", "fixed").focus()
-      scrollToBottom()
-      false
-
-    typer.blur ->
-      inner.removeClass "jquery-console-focus"
-      inner.addClass "jquery-console-nofocus"
-      return
-
-    typer.bind "paste", (e) ->
-      typer.val ""
-      setTimeout (->
-        typer.consoleInsert typer.val()
-        typer.val ""
-        return
-      ), 0
-      return
-
-    typer.keydown (e) ->
-      cancelKeyPress = 0
-      keyCode = e.keyCode
-      if e.ctrlKey and keyCode is 67
-        cancelKeyPress = keyCode
-        cancelExecution()
-        return false
-      if acceptInput
-        if e.shiftKey and keyCode of shiftCodes
-          cancelKeyPress = keyCode
-          (shiftCodes[keyCode])()
-          false
-        else if e.altKey and keyCode of altCodes
-          cancelKeyPress = keyCode
-          (altCodes[keyCode])()
-          false
-        else if e.ctrlKey and keyCode of ctrlCodes
-          cancelKeyPress = keyCode
-          (ctrlCodes[keyCode])()
-          false
-        else if keyCode of keyCodes
-          cancelKeyPress = keyCode
-          (keyCodes[keyCode])()
-          false
-
-    typer.keypress (e) ->
-      keyCode = e.keyCode or e.which
-      return false  if isIgnorableKey(e)
-      return true  if (e.ctrlKey or e.metaKey) and String.fromCharCode(keyCode).toLowerCase() is "v"
-      if acceptInput and cancelKeyPress isnt keyCode and keyCode >= 32
-        return false  if cancelKeyPress
-        typer.consoleInsert keyCode  if typeof config.charInsertTrigger is "undefined" or (typeof config.charInsertTrigger is "function" and config.charInsertTrigger(keyCode, promptText))
-      false  if isWebkit
-
-    typer.consoleInsert = (data) ->
-      text = (if (typeof data is "number") then String.fromCharCode(data) else data)
-      before = promptText.substring(0, column)
-      after = promptText.substring(column)
-      promptText = before + text + after
-      moveColumn text.length
-      restoreText = promptText
-      updatePromptDisplay()
-      return
-
-    extern.promptText = (text) ->
-      if typeof text is "string"
-        promptText = text
-        column = promptText.length
-        updatePromptDisplay()
-      promptText
-
-    extern
-
-  # Simple utility for printing messages
-  $.fn.filledText = (txt) ->
-    $(this).text txt
-    $(this).html $(this).html().replace(/\n/g, "<br/>")
-    this
-
-  # Alternative method for focus without scrolling
-  $.fn.focusWithoutScrolling = ->
-    x = window.scrollX
-    y = window.scrollY
-    $(this).focus()
-    window.scrollTo x, y
-    return
-
-  return
-) jQuery
+  window.Console = new Console

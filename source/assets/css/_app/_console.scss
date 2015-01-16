@@ -15,31 +15,37 @@
   display: inline-block;
   vertical-align: bottom;
   background-color: $white;
-  width: .8em;
-  height: 1.2em;
+  // width: .8em;
+  // height: 1.2em;
   animation: blink 1s infinite;
 }
 
-.console-input {
+.console-prompt {
   display: inline-block;
   width: auto;
-
-  &:focus {
-    outline: none;
-  }
 }
 
-.jquery-console-prompt-label {
-  margin-left: -20px;
+.console-capture {
+  position: fixed;
+  left: -9999px;
 }
 
-.jquery-console-cursor {
-  background-color: #fff;
-  animation: blink 1s infinite;
+.console-prompt-box {
+  position: relative;
+  // display: inline-block;
 }
 
-.jquery-console-message {
-  min-height: 20px;
-  font-weight: 400;
-  margin: 1em 0;
-}
+// .jquery-console-prompt-label {
+//   margin-left: -20px;
+// }
+
+// .jquery-console-cursor {
+//   background-color: #fff;
+//   animation: blink 1s infinite;
+// }
+
+// .jquery-console-message {
+//   min-height: 20px;
+//   font-weight: 400;
+//   margin: 1em 0;
+// }

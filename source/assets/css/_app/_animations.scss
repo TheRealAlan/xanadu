@@ -1,12 +1,12 @@
 @keyframes blink {
 
   0%  {
-    color: $gray-dark;
+    color: $background;
     background-color: $white;
   }
 
   50% {
     color: $white;
-    background-color: $gray-dark;
+    background-color: $background;
   }
 }
