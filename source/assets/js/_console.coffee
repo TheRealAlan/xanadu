@@ -14,7 +14,7 @@ class Console
     @pos          = 0
     @prompt_text  = ''
     @restore_text = ''
-    @cursor       = @$cursor.html()
+    @cursor       = "@$cursor.html()"
 
     # init
     @init()
@@ -29,7 +29,7 @@ class Console
       @_console_focus()
 
   _capture_type: ->
-    @$capture.on 'keypress', (ev) =>
+    @$capture.on 'keydown', (ev) =>
 
       if document.selection
         range = document.selection.createRange()
@@ -37,8 +37,6 @@ class Console
         @pos = range.text.length
       else if @$capture[0].selectionStart or @$capture[0].selectionStart is '0'
         @pos = @$capture[0].selectionStart
-
-      @_update_prompt()
 
       # console.log ev.keyCode
       keycode = ev.keyCode
@@ -98,6 +96,8 @@ class Console
       #   # return
       #   when 13 then @_new_line
 
+      @_update_prompt()
+
   _console_focus: ->
     @$inner.addClass 'focused'
     @$capture.focus()
@@ -105,12 +105,11 @@ class Console
   _update_prompt: ->
     text = @$capture.val()
     html = ''
-    console.log @pos
 
-    if @pos > 0 and text is ''
+    if @pos is 0 and text is ''
       html = @cursor
     else if @pos is text.length
-      html = @_html_encode text + @cursor4
+      html = @_html_encode(text) + @cursor
     else
       before  = text.substring(0, @pos)
       current = text.substring(@pos, @pos + 1)
@@ -119,7 +118,7 @@ class Console
       if current
         current = "<span class='console-cursor'>#{@_html_encode( current )}</span>"
 
-      html = @_html_encode( before ) + current + @_html_encode( after )
+      html = @_html_encode(before) + current + @_html_encode(after)
 
     @$prompt.html( html )
 
@@ -141,43 +140,46 @@ class Console
       # .replace(/\n/g, '<br>')
 
   _move_forward: ->
-    @_move_cursor( 1 )
+    @_move_cursor(1)
 
   _move_backward: ->
-    @_move_cursor( -1 )
+    @_move_cursor(-1)
 
   _move_cursor: (n) ->
     text = @$capture.val()
 
     if @pos + n >= 0 and @pos + n <= text.length
       @pos += n
-      @_update_prompt()
+    # else
+      # @_update_prompt()
+
+    console.log "#{@pos} / #{text.length}"
 
   _scroll_to_bottom: ->
     @$console.velocity( 'scroll', {
       duration: 200
     })
 
-  # _prev_history: ->
-  #   @_update_prompt()
+  _prev_history: ->
+    @_update_prompt()
 
-  # _next_history: ->
-  #   @_update_prompt()
+  _next_history: ->
+    @_update_prompt()
 
-  # _backspace: ->
-  #   @_update_prompt()
+  _backspace: ->
+    @_update_prompt()
 
-  # _forward_delete: ->
-  #   @_update_prompt()
+  _forward_delete: ->
+    @_update_prompt()
 
-  # _delete_until_end: ->
-  #   @_update_prompt()
+  _delete_until_end: ->
+    @_update_prompt()
 
-  # _move_to_end: ->
-  #   @_update_prompt()
+  _move_to_end: ->
+    @_update_prompt()
 
-  # _move_to_start: ->
-  #   @_update_prompt()
+  _move_to_start: ->
+    @_update_prompt()
 
   _trigger_command: ->
     input_text = @$prompt.text()
