@@ -1,10 +1,12 @@
 [
   {
     "output": "Sample scene. Type 'next scene' to continue.",
+    "reject": "Nope.",
     "valid": "next scene"
   },
   {
     "output": "Nice! Scenes work.",
+    "reject": "Nope.",
     "valid": ""
   }
 ]

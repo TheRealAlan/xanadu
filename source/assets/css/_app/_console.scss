@@ -1,23 +1,23 @@
 .console {
-  position: relative;
   color: $white;
   font-weight: 700;
+  position: relative;
 }
 
 .console-label {
-  width: 1em;
-  margin-left: -1em;
   display: inline-block;
+  margin-left: -1em;
   vertical-align: bottom;
+  width: 1em;
 }
 
 .console-cursor {
-  display: inline-block;
-  vertical-align: bottom;
-  background-color: $white;
-  width: .8em;
-  height: 1.2em;
   animation: blink 1s infinite;
+  background-color: $white;
+  display: inline-block;
+  height: 1.2em;
+  vertical-align: bottom;
+  width: .8em;
 }
 
 .console-input {
@@ -29,17 +29,33 @@
   }
 }
 
-.jquery-console-prompt-label {
-  margin-left: -20px;
+.console-capture {
+  color: $white;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: auto;
+  resize: none;
+  -webkit-font-smoothing: antialiased;
+
+  &:focus {
+    outline: none;
+  }
 }
 
-.jquery-console-cursor {
-  background-color: #fff;
-  animation: blink 1s infinite;
-}
+// .jquery-console-prompt-label {
+//   margin-left: -20px;
+// }
 
-.jquery-console-message {
-  min-height: 20px;
-  font-weight: 400;
-  margin: 1em 0;
-}
+// .jquery-console-cursor {
+//   background-color: #fff;
+//   animation: blink 1s infinite;
+// }
+
+// .jquery-console-message {
+//   min-height: 20px;
+//   font-weight: 400;
+//   margin: 1em 0;
+// }
