@@ -21,7 +21,7 @@ class Levels
     @_load_level()
 
   _load_level: ->
-    level = "/levels/level-#{@level}.json"
+    level = "levels/level-#{@level}.json"
     $.getJSON level, (data) =>
       @level_data.push data
     .fail (err) ->
