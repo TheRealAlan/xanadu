@@ -1,0 +1,21 @@
+[
+  {
+    "output": "Sample scene. Type 'next scene' to continue.",
+    "reject": "Nope.",
+    "valid": "next scene"
+  },
+  {
+    "output": "Nice! Scenes work. Type 'next scene' to see some effects.",
+    "reject": "Nope.",
+    "valid": "next scene"
+  },
+  {
+    "output": "Cool. Type 'next level' to load the next level.",
+    "reject": "Nope.",
+    "valid": "next level",
+    "effects": [
+      "interference"
+    ],
+    "level-end": true
+  }
+]
