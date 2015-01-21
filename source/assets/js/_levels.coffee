@@ -3,6 +3,7 @@ class Levels
   constructor: ->
     # selectors
     @$document       = $(document)
+    @$board          = $('#board')
     @$console        = $('.console')
     @$capture        = $('.console-capture')
     @$dialog         = $('.dialog')
@@ -80,11 +81,18 @@ class Levels
     @_insert_input()
     @_reset_console()
     @_scroll_to_bottom()
+    @$board.removeClass()
 
     if @level_data[@level][@scene]['level-end'] and line is @level_data[@level][@scene]['valid']
       return false
     else if line is @level_data[@level][@scene]['valid']
       @scene++
+      effects = @level_data[@level][@scene]['effects']
+      classes = ''
+      if effects
+        for effect in effects
+          classes += effect
+      @$board.addClass(classes)
       return @level_data[@level][@scene]['output']
     else
       return @level_data[@level][@scene]['reject']

@@ -10,3 +10,96 @@
     background-color: $gray-dark;
   }
 }
+
+@keyframes interference {
+
+  0%   {
+    text-shadow:
+      0 0 0 rgba(255,255,255,0),
+      0 0 0 rgba(255,255,255,0)
+  }
+
+  20%  {
+    text-shadow:
+      5px 0 0 rgba(255,255,255,0.5),
+      -2px 0 0 rgba(255,255,255,0.2)
+  }
+
+  25%  {
+    text-shadow:
+      -2px 0 0 rgba(255,255,255,0.4),
+      1px 0 0 rgba(255,255,255,0.3)
+  }
+
+  28%  {
+    text-shadow:
+      2px 0 0 rgba(255,255,255,0.7),
+      -2px 0 0 rgba(255,255,255,0.3)
+  }
+
+  35%  {
+    text-shadow:
+      -5px 0 0 rgba(255,255,255,0.2),
+      5px 0 0 rgba(255,255,255,0.5)
+  }
+
+  45%  {
+    text-shadow:
+      4px 0 0 rgba(255,255,255,0.4),
+      -4px 0 0 rgba(255,255,255,0.2)
+  }
+
+  50%  {
+    text-shadow:
+      2px 0 0 rgba(255,255,255,0),
+      -2px 0 0 rgba(255,255,255,.1)
+  }
+
+  60%  {
+    text-shadow:
+      -5px 0 0 rgba(255,255,255,0),
+      4px 0 0 rgba(255,255,255,.3)
+  }
+
+  70%  {
+    text-shadow:
+      2px 0 0 rgba(255,255,255,.4),
+      -2px 0 0 rgba(255,255,255,.2)
+  }
+
+  75%  {
+    text-shadow:
+      5px 0 0 rgba(255,255,255,.7),
+      -5px 0 0 rgba(255,255,255,.4)
+  }
+
+  85%  {
+    text-shadow:
+      -7px 0 0 rgba(255,255,255,.7),
+      7px 0 0 rgba(255,255,255,.3)
+  }
+
+  88%  {
+    text-shadow:
+      -5px 0 0 rgba(255,255,255,.4),
+      5px 0 0 rgba(255,255,255,.2)
+  }
+
+  90%  {
+    text-shadow:
+      -7px 0 0 rgba(255,255,255,.7),
+      7px 0 0 rgba(255,255,255,.3)
+  }
+
+  92%  {
+    text-shadow:
+      -2px 0 0 rgba(255,255,255,.2),
+      2px 0 0 rgba(255,255,255,.4)
+  }
+
+  100% {
+    text-shadow:
+      0 0 0 rgba(255,255,255,0),
+      0 0 0 rgba(255,255,255,0)
+  }
+}
