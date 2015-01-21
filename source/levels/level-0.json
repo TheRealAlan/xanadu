@@ -5,8 +5,9 @@
     "valid": "next scene"
   },
   {
-    "output": "Nice! Scenes work.",
+    "output": "Nice! Scenes work. Type 'next level' to load the next level.",
     "reject": "Nope.",
-    "valid": ""
+    "valid": "next level",
+    "level-end": true
   }
 ]

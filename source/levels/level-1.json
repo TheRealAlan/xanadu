@@ -1,0 +1,18 @@
+[
+  {
+    "output": "Level 2! Yayuh! Type 'next scene' to continue.",
+    "reject": "Nope.",
+    "valid": "next scene"
+  },
+  {
+    "output": "Level 2 scene 2. Type 'next scene' to continue.",
+    "reject": "Nope.",
+    "valid": "next scene"
+  },
+  {
+    "output": "Level 2 scene 3. Type 'next level' to continue.",
+    "reject": "Nope.",
+    "valid": "next level",
+    "level-end": true
+  }
+]

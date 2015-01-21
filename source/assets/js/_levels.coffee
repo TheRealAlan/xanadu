@@ -2,40 +2,43 @@ class Levels
 
   constructor: ->
     # selectors
-    @$body           = $(document)
+    @$document       = $(document)
     @$console        = $('.console')
     @$capture        = $('.console-capture')
     @$dialog         = $('.dialog')
 
     # variables
     @console_enabled = true
+
+    # levels
     @level           = 0
     @scene           = 0
     @act             = 0
+    @level_data      = []
 
-    # levels
-    @levels          = []
-    @level_paths     = [
-      "/levels/level-01.json"
-      "/levels/level-02.json"
-    ]
+    # init
+    @_load_level()
 
-    @level_count = 0
+  _load_level: ->
+    level = "/levels/level-#{@level}.json"
+    $.getJSON level, (data) =>
+      @level_data.push data
+      console.log @level_data
+    .fail (err) ->
+      "Request failed: #{err}"
+    .done (data) =>
+      @_init_dialog()
+      if @level is 0
+        @_init_console()
 
-    for level in @level_paths
-      $.getJSON level, (data) =>
-        @levels.push data
-      .fail (err) =>
-        "Request failed: #{err}"
-      .done (data) =>
-        @level_count++
-
-        if @level_count is @level_paths.length
-          @_init_dialog()
-          @_init_console()
+  _next_level: ->
+    @level++
+    @scene = 0
+    @act = 0
+    @_load_level()
 
   _init_dialog: ->
-    message = @levels[@level][@scene]['output']
+    message = @level_data[@level][@scene]['output']
     $el = $("<div class='console-output'></div>")
     @$dialog.append($el)
     @_typewriter(message, $el)
@@ -43,10 +46,10 @@ class Levels
   _init_console: ->
     @_focus_console()
 
-    @$body.on 'click', (ev) =>
+    @$document.on 'click', (ev) =>
       @_focus_console()
 
-    @$body.on 'keydown', (ev) =>
+    @$document.on 'keydown', (ev) =>
       if ev.keyCode is 13 and not @console_enabled
         ev.preventDefault()
         @_enable_console()
@@ -59,7 +62,11 @@ class Levels
 
         if line and line isnt ''
           message = @_validate_input(line)
-          @_insert_output(message)
+
+          if message
+            @_insert_output(message)
+          else
+            @_next_level()
 
   _disable_console: ->
     @console_enabled = false
@@ -76,11 +83,13 @@ class Levels
     @_reset_console()
     @_scroll_to_bottom()
 
-    if line is @levels[@level][@scene]['valid']
+    if @level_data[@level][@scene]['level-end'] and line is @level_data[@level][@scene]['valid']
+      return false
+    else if line is @level_data[@level][@scene]['valid']
       @scene++
-      return @levels[@level][@scene]['output']
+      return @level_data[@level][@scene]['output']
     else
-      return @levels[@level][@scene]['reject']
+      return @level_data[@level][@scene]['reject']
 
   _insert_input: ->
     message = @$capture.val()
@@ -111,8 +120,10 @@ class Levels
       timeout = null
       @_disable_console()
 
+      console.log message
+
       typewriter = ->
-        timeout = setTimeout ->
+        timeout = setTimeout =>
           character++
           type = message.substring(0, character)
           $el.text(type)
