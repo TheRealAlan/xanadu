@@ -25,6 +25,9 @@ set :js_dir, 'assets/js'
 set :images_dir, 'assets/img'
 set :fonts_dir, 'assets/fonts'
 
+activate :relative_assets
+set :relative_links, true
+
 after_configuration do
   sprockets.append_path File.join root.to_s, "bower_components"
 end

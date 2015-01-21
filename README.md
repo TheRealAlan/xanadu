@@ -1,6 +1,8 @@
 # Xanadu
 A text-based game engine.
 
+View a demo [here](http://octopress.org/docs/deploying/github/).
+
 ### Get the Repo
 ``` unix
 git clone https://github.com/TheRealAlan/xanadu.git
