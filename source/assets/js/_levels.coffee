@@ -23,7 +23,6 @@ class Levels
     level = "/levels/level-#{@level}.json"
     $.getJSON level, (data) =>
       @level_data.push data
-      console.log @level_data
     .fail (err) ->
       "Request failed: #{err}"
     .done (data) =>
@@ -70,12 +69,11 @@ class Levels
 
   _disable_console: ->
     @console_enabled = false
-    @$capture.hide()
+    @$console.hide()
 
   _enable_console: ->
-    clearTimeout @_typewriter.timeout
     @console_enabled = true
-    @$capture.show()
+    @$console.show()
     @_focus_console()
 
   _validate_input: (line) ->
@@ -120,16 +118,15 @@ class Levels
       timeout = null
       @_disable_console()
 
-      console.log message
-
       typewriter = ->
-        timeout = setTimeout =>
+        timeout = setTimeout ->
           character++
           type = message.substring(0, character)
           $el.text(type)
           typewriter()
 
           if character is length
+            clearTimeout(delay)
             window.Levels._enable_console()
         , 50
 
