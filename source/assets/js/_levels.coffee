@@ -17,8 +17,19 @@ class Levels
     @act             = 0
     @level_data      = []
 
+    # tests
+    @test_data       = []
+
     # init
+    @_load_tests()
     @_load_level()
+
+  _load_tests: ->
+    tests = "tests/tests.json"
+    $.getJSON tests, (data) =>
+      @test_data = data
+    .fail (err) ->
+      "Request failed: #{err}"
 
   _load_level: ->
     level = "levels/level-#{@level}.json"
@@ -77,25 +88,49 @@ class Levels
     @$console.show()
     @_focus_console()
 
+  _check_test: (line) ->
+    for test in @test_data
+      if line is "test clear"
+        @remove_effects()
+        return "clearing effects"
+      else if line is "test #{test}"
+        effects = []
+        effects.push(test)
+        @add_effects(effects)
+        return "testing #{test}"
+      else
+        return false
+
   _validate_input: (line) ->
     @_insert_input()
     @_reset_console()
     @_scroll_to_bottom()
-    @$board.removeClass()
+    @remove_effects()
+    test = @_check_test(line)
 
-    if @level_data[@level][@scene]['level-end'] and line is @level_data[@level][@scene]['valid']
-      return false
-    else if line is @level_data[@level][@scene]['valid']
-      @scene++
-      effects = @level_data[@level][@scene]['effects']
-      classes = ''
-      if effects
-        for effect in effects
-          classes += effect
-      @$board.addClass(classes)
-      return @level_data[@level][@scene]['output']
+    if not test
+      if @level_data[@level][@scene]['level-end'] and line is @level_data[@level][@scene]['valid']
+        return false
+      else if line is @level_data[@level][@scene]['valid']
+        @scene++
+        effects = @level_data[@level][@scene]['effects']
+        if effects
+          @add_effects(effects)
+        return @level_data[@level][@scene]['output']
+      else
+        return @level_data[@level][@scene]['reject']
+
     else
-      return @level_data[@level][@scene]['reject']
+      return test
+
+  add_effects: (effects) ->
+    classes = ''
+    for effect in effects
+      classes += effect
+    @$board.addClass(classes)
+
+  remove_effects: ->
+    @$board.removeClass()
 
   _insert_input: ->
     message = @$capture.val()
