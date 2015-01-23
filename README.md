@@ -35,7 +35,7 @@ Effects and themes can also be added / edited to the game. Custom visual effects
 Tests
 =====
 
-I've implemented a very primitive way to test features and effects. Here's a running list of things to try:
+I've implemented a very primitive way to test features and effects. Here's a running list of commands to try:
 
 - test interference
 - test clear
