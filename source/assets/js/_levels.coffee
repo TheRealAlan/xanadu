@@ -37,6 +37,9 @@ class Levels
       @level_data.push data
     .fail (err) ->
       "Request failed: #{err}"
+    .success (data, status) ->
+      console.log status
+
     .done (data) =>
       @_init_dialog()
       if @level is 0

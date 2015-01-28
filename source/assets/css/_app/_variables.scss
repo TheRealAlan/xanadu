@@ -6,13 +6,16 @@ $black:                   #000;
 $gray-dark:               #555;
 $background:              #111;
 $text:                    $white;
-
+$green:                   #00b200;
 
 /*    Fonts
 --------------------------------------------------------- */
 
-$primary-font:            'Source Code Pro';
+$primary-font:            'Source Code Pro Regular', mono;
 $primary-weight:          400;
+
+$primary-font-bold:       'Source Code Pro Bold', mono;
+$primary-weight-bold:     700;
 
 /*    Margins
 --------------------------------------------------------- */
