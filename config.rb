@@ -32,6 +32,14 @@ after_configuration do
   sprockets.append_path File.join root.to_s, "bower_components"
 end
 
+#   External Pipelines
+# -----------------------------------------
+
+activate :external_pipeline,
+  name: :riot,
+  command: "riot -w source/assets/js/",
+  source: "assets/js/riot/"
+
 # Build-specific configuration
 configure :build do
   # For example, change the Compass output style for deployment

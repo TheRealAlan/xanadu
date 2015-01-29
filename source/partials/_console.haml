@@ -1,3 +1,10 @@
-.console
+%xanadu-console.console
   .console-inner
-    %textarea.console-capture
+    %form( onsubmit={parent.console_input} )
+      %textarea.console-capture
+
+  :coffeescript
+    # @$capture = $('.console-capture')
+    console_input(ev) {
+      alert ev
+    }

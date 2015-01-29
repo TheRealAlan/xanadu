@@ -2,7 +2,12 @@
 //= require 'jquery/dist/jquery.js'
 //= require 'velocity/velocity.js'
 //= require 'fastclick/lib/fastclick.js'
+//= require 'riot/riot.js'
 
 # App
-//= require '_levels.coffee'
-//= require '_app_init.coffee'
+# //= require '_levels.coffee'
+# //= require '_app_init.coffee'
+
+$ ->
+
+  riot.mount('xanadu-console')
